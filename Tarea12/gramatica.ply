@@ -1,0 +1,102 @@
+# IMPORTES
+import ply.yacc as yacc
+import ply.lex as lex
+
+# ANALISIS LEXICO
+tokens = (
+    'TK_ID',
+    'TK_SUMA',
+    'TK_RESTA',
+    'TK_MULTIPLICACION',
+    'TK_DIVISION',
+    'TK_PARENTESIS_IZQUIERDO',
+    'TK_PARENTESIS_DERECHO',
+)
+
+t_TK_PARENTESIS_IZQUIERDO = r'\('
+t_TK_PARENTESIS_DERECHO = r'\)'
+t_TK_SUMA = r'\+'
+t_TK_RESTA = r'-'
+t_TK_MULTIPLICACION = r'\*'
+t_TK_DIVISION = r'/'
+
+
+def t_TK_ID(t):
+    r'[a-zA-Z_][a-zA-Z_0-9]*'
+    return t
+
+def t_error(t):
+    print("Illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
+
+lexer = lex.lex()
+
+class Produccion:
+    TEMP = ""
+    C3D = ""
+
+contador=0
+def NuevoTemporal():
+    global contador
+    contador+=1
+    return "t" + str(contador)
+
+# ANALISIS SINTACTICO
+
+def p_S(t):
+    ''' S : E '''
+    t[0] = print(t[1].C3D)
+
+def p_E_E_SUMA_T(t):
+    ''' E : E TK_SUMA T'''
+    t[0] = Produccion()
+    t[0].TEMP = NuevoTemporal()
+    t[0].C3D = t[1].C3D + t[3].C3D + t[0].TEMP + " = " + t[1].TEMP + " + "+ t[3].TEMP + "\n"
+
+def p_E_E_RESTA_T(t):
+    ''' E : E TK_RESTA T'''
+    t[0] = Produccion()
+    t[0].TEMP = NuevoTemporal()
+    t[0].C3D = t[1].C3D + t[3].C3D + t[0].TEMP + " = " + t[1].TEMP + " - "+ t[3].TEMP + "\n"
+
+def p_E_T(t):
+    ''' E : T'''
+    t[0] = Produccion()
+    t[0].TEMP = t[1].TEMP
+    t[0].C3D = t[1].C3D
+
+def p_T_T_MULTIPLICACION_F(t):
+    ''' T : T TK_MULTIPLICACION F'''
+    t[0] = Produccion()
+    t[0].TEMP = NuevoTemporal()
+    t[0].C3D = t[1].C3D + t[3].C3D + t[0].TEMP + " = " + t[1].TEMP + " * "+ t[3].TEMP + "\n"
+
+def p_T_T_DIVISION_F(t):
+    ''' T : T TK_DIVISION F'''
+    t[0] = Produccion()
+    t[0].TEMP = NuevoTemporal()
+    t[0].C3D = t[1].C3D + t[3].C3D + t[0].TEMP + " = " + t[1].TEMP + " / "+ t[3].TEMP + "\n"
+
+def p_T_F(t):
+    ''' T : F'''
+    t[0] = Produccion()
+    t[0].TEMP = t[1].TEMP
+    t[0].C3D = t[1].C3D
+
+def p_F_E(t):
+    ''' F : TK_PARENTESIS_IZQUIERDO E TK_PARENTESIS_DERECHO'''
+    t[0] = Produccion()
+    t[0].TEMP = t[2].TEMP
+    t[0].C3D = t[2].C3D
+
+def p_F_ID(t):
+    ''' F : TK_ID '''
+    t[0] = Produccion()
+    t[0].TEMP = str(t[1])
+    t[0].C3D = ""
+
+def p_error(t):
+    print("Error sintáctico en '%s'" % t.value)
+
+parser = yacc.yacc()
+parser.parse("q*d+a-e/a")
